@@ -31,7 +31,8 @@ export default defineComponent({
 <style>
 body {
   font-size: 18px;
-  background: rgb(224, 255, 255, 0.15);
+  /* background: rgb(224, 255, 255, 0.15); */
+  background: #FBDEBC;
   font-family: 'Lobster', Times;
 }
 </style>

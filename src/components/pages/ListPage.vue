@@ -15,9 +15,13 @@
         </div>
       </li>
     </ul>
-    <Pay :isDisablePreview="cartCount == 0" />
+    <Pay :isDisablePreview="cartCount == 0" :walletConnected="walletConnected" />
     <!-- <Ad v-if="showAd" /> -->
   </div>
+
+  <div class="fun-fact-box">
+  Fun Fact: {{ funFact }} ☕
+</div>
 
   <dialog data-cy="add-to-cart-modal" ref="dialog">
     <p>Add <strong>{{ selectedCoffee }}</strong> to the cart?</p>
@@ -44,6 +48,7 @@ export default defineComponent({
   computed: {
     ...mapState({
       list: (state: any) => state.coffees.list.filter((x:any) => !x.discounted),
+      walletConnected: (state: any) => state.wallet.walletConnected,
     }),
     ...mapGetters({
       cartCount: "cart/cartCount"
@@ -69,9 +74,20 @@ export default defineComponent({
         'Cafe Latte': '拿铁',
         'Espresso Con Panna': '浓缩康宝蓝',
         'Cafe Breve': '半拿铁',
-      } as any
+      } as any,
+      funFact: '',
+      facts: [
+        "Coffee is the second most traded commodity in the world.",
+        "Beethoven counted 60 coffee beans per cup he made.",
+        "Espresso has less caffeine than drip coffee per ounce.",
+        "The word 'coffee' comes from the Arabic 'qahwa'.",
+        "Finland drinks the most coffee per capita worldwide.",
+    ],
     }
   },
+  mounted() {
+  this.funFact = this.facts[Math.floor(Math.random() * this.facts.length)];
+},
   created() {
     if (this.showAd) {
       window.addEventListener('message', this.resizeFrame);
@@ -196,6 +212,19 @@ button:hover {
   right: 10px;
 }
 
+.fun-fact-box {
+  background-color: #fff3e6;
+  padding: 12px 20px;
+  margin: 20px auto;
+  border-radius: 10px;
+  font-style: italic;
+  color: #6f4e37;
+  text-align: center;
+  max-width: 80%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+
 @media (min-width: 500px) {
   ul {
     grid-template-columns: repeat(2, auto);
@@ -220,4 +249,6 @@ li h4 {
   /* text-align: center; */
   margin: 10px 0;
 }
+
+
 </style>

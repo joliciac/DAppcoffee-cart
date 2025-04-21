@@ -10,9 +10,35 @@
         </div>
       </li>
     </ul>
-    <button data-test="checkout" class="pay" type="button" aria-label="Proceed to checkout" @mouseover="togglePreview()" @click="pay()">Total: {{ currency(total) }}</button>
+
+    <p v-if="!walletConnected" style="color: tomato; text-align: center;">
+      Please connect your wallet before proceeding to checkout.
+    </p>
+
+    <button 
+    data-test="checkout" 
+    class="pay" 
+    type="button" 
+    aria-label="Proceed to checkout" 
+    @mouseover="togglePreview()"
+    @click="pay()"
+    :disabled="!walletConnected">
+    Total: {{ currency(total) }}
+  </button>
+
+  <!-- <PaymentDetails v-if="walletConnected" :isShow="isShow" @close="closed()" />
   </div>
-  <PaymentDetails :isShow="isShow" @close="closed()" />
+  <PaymentDetails :isShow="isShow" @close="closed()" /> -->
+  
+  <PaymentDetails
+  v-if="walletConnected"
+  :isShow="isShow"
+  :orderId="orderId"
+  :amountPaid="ethAmount"
+  :usdPaid="usDollars"
+  :txHash="txHash"
+  @close="closed()" />
+ </div>
 </template>
 
 <script lang="ts">
@@ -24,7 +50,14 @@ import PaymentDetails  from './PaymentDetails.vue';
 export default defineComponent({
   name: 'Pay',
   components: { PaymentDetails },
-  props: ['isDisablePreview'],
+  emits:['store-order'],
+  props: {
+    isDisablePreview: Boolean,
+    walletConnected:{type: Boolean, required: true},
+  },
+  mounted() {
+    console.log(window.ethereum.selectedAddress);
+  },
   computed: {
     ...mapGetters({
       total: 'cart/cartTotal',
@@ -35,12 +68,33 @@ export default defineComponent({
   data() {
     return {
       isShow: false,
+      orderId: '',
+      ethAmount: 0,
+      usDollars: 0,
+      txHash: ''
     };
   },
   methods: {
     ...mapMutations("cart", ["addOneCartItem", "removeOneCartItem"]),
     currency,
     pay() {
+      if (!this.walletConnected) {
+        alert("Please connect your wallet before proceeding.");
+        return;
+      }
+
+      const rate = 1655; // rate for 1 eth to dollars when i added this
+      this.usDollars = this.total;
+      this.ethAmount = parseFloat((this.usDollars / rate).toFixed(4));
+
+      this.orderId = "" + Date.now();
+
+      this.$emit("store-order", this.orderId, this.ethAmount, (txHash: string) => {
+        this.txHash = txHash;
+        this.ethAmount = this.ethAmount;
+        this.isShow = true;
+      });
+
       slow();
       this.isShow = true;
     },
@@ -67,6 +121,12 @@ button.pay {
 button.pay:hover {
   border-color: goldenrod;
   color: goldenrod;
+}
+
+button.pay:disabled {
+  background: lightgray;
+  border-color: gray;
+  cursor: not-allowed;
 }
 
 .cart-preview.show {

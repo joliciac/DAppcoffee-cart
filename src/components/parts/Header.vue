@@ -35,7 +35,8 @@ ul {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: rgb(250, 255, 255);
+  /* background: rgb(250, 255, 255); */
+  background: #D4EABB;
   margin-block: 0;
 }
 

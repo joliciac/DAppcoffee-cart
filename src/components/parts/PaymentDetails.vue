@@ -3,85 +3,45 @@
     <div class="modal-content size">
       <!-- <span class="close" @click="closeModal()">&times;</span> -->
       <section>
-        <h1>Payment details</h1>
+        <h1>Payment Confirmation</h1>
         <button class="close" @click="closeModal()">&times;</button>
       </section>
-      <p>We will send you a payment link via email.</p>
-      <form @submit.prevent="submit" aria-label="Payment form">
-        <div>
-          <label for="name">Name</label>
-          <input ref="name" type="text" name="name" id="name" v-model="name" autocomplete="off" required>
+
+      <form aria-label="Payment form">
+        <p>Great coffee selection! Here is your order summary:</p>
+        <p><strong>Order ID:</strong> <code>{{ orderId }}</code></p>
+        <p><strong>Amount Paid:</strong> {{ currency(amountPaid) }} ETH <span style="color:gray;">(~${{ usdPaid?.toFixed(2) }})</span></p>
+        <p v-if="txHash"><strong>Txn Hash:</strong> {{ txHash }}</p>
+        
+        <div style="text-align: right;">
+          <button @click="closeModal()">Done</button>
         </div>
-        <div>
-          <label for="email">Email</label>
-          <input type="email" name="email" id="email" v-model="email" autocomplete="off" required>
-        </div>
-        <div aria-label="Promotion agreement">
-          <input type="checkbox" name="promotion" v-model="subscribe" id="promotion" aria-label="Promotion checkbox">
-          <label id="promotion-label" for="promotion" aria-label="Promotion message">I would like to receive order updates and promotional messages.</label>
-        </div>
-        <div>
-          <button id="submit-payment" type="submit">Submit</button>
-        </div>
-      </form>
+</form>
+
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { currency } from '../../utils.js';
 
 export default defineComponent({
   name: 'PaymentDetails',
-  props: ['isShow'],
+  props: {
+    isShow: Boolean,
+    orderId: String,
+    amountPaid: Number,
+    usdPaid: Number,
+    txHash: String},
   emits: ['close'],
-  data() {
-    return {
-      name: '',
-      email: '',
-      subscribe: false
-    }
-  },
-  watch: {
-    isShow(newVal, _) {
-      if (!newVal) return;
-
-      this.$nextTick(() => {
-        (this.$refs.name as HTMLInputElement).focus();
-      }); 
-    }
-  },
   methods: {
+    currency,
     closeModal() {
-      this.$emit('close');
-    },
-    resetForm() {
-      this.name = '';
-      this.email = '';
-      this.subscribe = false;
-    },
-    async submit() {
-      if (this.name && this.email) {
-        // blocking
-        await this.slow();
-
-        this.resetForm();
-        this.closeModal();
-
-        this.$store.commit('cart/emptyCart');
-        this.$router.push('/');
-        this.$snackbar.showMessage({ content: 'Thanks for your purchase. Please check your email for payment.', color: 'success' });
-      }
-    },
-    async slow() {
-      const longTask = await import('../../api/slow.js');
-      performance.mark('submit-start');
-      longTask.makeItSlow();
-      performance.mark('submit-end');
-      console.log('done');
+      this.$emit('close')
     }
   }
-})
+});
 </script>
 
 <style scoped>
